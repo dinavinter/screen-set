@@ -9,20 +9,21 @@ export interface IdToken {
   details : any
 }
 export interface User {
-  id: string;
-  uuid: string;
-  firstName: string;
-  lastName: string;
-  username: string;
-  password: string;
-  email: string;
-  photo: string;
-  phoneNumber: string;
-  balance: number;
-  avatar: string;
-  defaultPrivacyLevel: DefaultPrivacyLevel;
-  createdAt: Date;
-  modifiedAt: Date;
+  id?: string;
+  uuid?: string;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  password?: string;
+  email?: string;
+  photo?: string;
+  phoneNumber?: string;
+  balance?: number;
+  avatar?: string;
+  defaultPrivacyLevel?: DefaultPrivacyLevel;
+  createdAt?: Date;
+  modifiedAt?: Date;
+  [key:string]: any
 }
 
 export type UserSettingsPayload = Pick<

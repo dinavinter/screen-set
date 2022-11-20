@@ -29,7 +29,6 @@ export async function performSignup(args: any) {
 
     });
 }
-
 export async function performSignupWithSS(args: any) {
     return new Promise((resolve, reject) => {
 
@@ -38,6 +37,33 @@ export async function performSignupWithSS(args: any) {
                 ...args,
                 screenSet: "Default-RegistrationLogin",
                 startScreen: 'gigya-register-screen',
+                onLogin: (r) => {
+                    resolve(r)
+                },
+                callback: (response) => {
+                    if (response.errorCode === 0) {
+                        resolve(response);
+
+                    }
+                    if (response.errorCode !== 0) {
+                        reject(
+                            `Error during registration: ${response.errorMessage}, ${response.errorDetails}`
+                        );
+                    }
+                },
+            })
+
+    });
+}
+
+export async function showLoginScreenSet(args: any):Promise<Account> {
+    return new Promise((resolve, reject) => {
+
+        gigyaWebSDK().accounts.showScreenSet(
+            {
+                screenSet: "Default-RegistrationLogin",
+                startScreen: 'gigya-login-screen',
+                ...args, 
                 onLogin: (r) => {
                     resolve(r)
                 },
@@ -121,7 +147,7 @@ export function getJwt(args) {
 
 
 
-export function getAccount(args): Promise<Account> {
+export function getAccount(args ={}): Promise<Account> {
     return new Promise((resolve, reject) => {
         gigyaWebSDK().accounts.getAccountInfo({
             ...(args || {}),

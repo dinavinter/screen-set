@@ -162,7 +162,7 @@ export interface Data extends AnyRecord
         socialProviders: string;
         verified: Date;
         verifiedTimestamp: number;
-        userInfo: UserInfo;
+        userInfo: Partial<UserInfo>;
         id_token: string;
         status: string;
         operation: string;

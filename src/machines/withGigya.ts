@@ -3,12 +3,13 @@ import {
     getJwt,
     logout,
     performSignin,
-    performSignup, 
+    performSignup, showLoginScreenSet,
     socialLoginAsync,
     SocialLoginParams
-} from "../gigya/gigyaAuthMachine";
+} from "../gigya/gigyaAuthService";
 import {omit} from "lodash/fp";
 import {AuthMachine} from "./authMachine";
+import {gigyaSdk} from "../gigya/provider";
 
 function toMfa(tokenDetails: any) {
     return {
@@ -19,131 +20,30 @@ function toMfa(tokenDetails: any) {
 
 export const withGigya= (authMachine:AuthMachine)=>authMachine.withConfig({
     services: {
-        performSignup: async (ctx, event) => {
+        showLogin:  (ctx, event) => (send) => {
             const payload = omit("type", event);
-            return await performSignup(payload)
-        },
-        performLogin: async (ctx, event) => {
-            const payload = omit("type", event);
-            const loginMode =ctx.user? "reAuth" : "standard"
-            return await performSignin({...payload, loginMode})
-        },
-        getToken: async (ctx, event) => {
-            const payload = omit("type", event);
-            const idToken = await getJwt(payload);
-            const tokenDetails= decodeJwt(idToken as string);
-
-            const mfaToken = decodeJwt(idToken as string);
-            const forMfa = toMfa(mfaToken);
-            delete  mfaToken.sub_id;
-            delete  mfaToken.amr;
-            delete  mfaToken.email;
-            mfaToken.sub_ids = [forMfa];
-            
-            return { idToken: {raw: idToken, details:tokenDetails}, mfaToken, access_token:btoa(JSON.stringify(mfaToken))   };
-        },
-
-        enrichToken: async (ctx, event) => {
-            const payload = omit("type", event);
-            const idToken = await getJwt(payload);
-            const tokenDetails= decodeJwt(idToken as string); 
-            const mfaToken = ctx.mfaToken;
-            const forMfa = toMfa( decodeJwt(idToken as string));
-            mfaToken.sub_ids = [...mfaToken.sub_ids, forMfa];
-             return { idToken:  {raw: idToken, details:tokenDetails}, mfaToken, access_token:btoa(JSON.stringify(mfaToken)) };
-
-            function decodeJwt(token?:string) {
-
-                return token && token.split && JSON.parse(atob(token.split('.')[1]));
-
-            }  
-         
-
-            
-        },
-        performSocialLogin: async (ctx, event) => {
-            if (event.type === "SOCIAL") {
-                const payload = omit("type", event);
-                const loginMode =ctx.user? "reAuth" :  "standard"
-
-                return await  socialLoginAsync({...payload, loginMode} as SocialLoginParams);
+            const show = async (payload:any)=>{
+                const gigya= await gigyaSdk();
+                const user =await gigya.showLoginScreenSet(payload);
+                return {user:{ ...(user?.userInfo || {}),  photo: user?.profile?.photoURL}};
             }
-
+            show(payload) 
+                .then(function (user) {
+                send({ type: "LOGGED_IN", user: user })
+            })
         },
-        getUserProfile: async (ctx, event) => {
+        fetchAccount: (ctx, event) => (send) => {
             const payload = omit("type", event);
-            const user = await getAccount(payload);
-            return {user:{ ...(user?.userInfo || {}),  photo: user?.profile?.photoURL}};
-        },
-        performLogout: async (ctx, event) => {
-            localStorage.removeItem("authState");
-            return await logout();
-        },
-        /*'login-service':loginMachine.withConfig({
-            services:{
-                performSignup: async (ctx, event) => {
-                    const payload = omit("type", event);
-                    return await performSignup(payload)
-                },
-                performLogin: async (ctx, event) => {
-                    const payload = omit("type", event);
-                    const loginMode =ctx.user? "reAuth" : "standard"
-                    return await performSignin({...payload, loginMode})
-                },
-                performSocialLogin: async (ctx, event) => {
-                    if (event.type == "SOCIAL") {
-                        const payload = omit("type", event);
-                        const loginMode =ctx.user? "reAuth" :  "standard"
+            return getAccount(payload)
+                .then(function (user) {
+                    const account={user:{ ...(user?.profile || {}),  photo: user?.profile?.photoURL}};
 
-                        return await  socialLoginAsync({...payload, loginMode} as SocialLoginParams);
-                    }
-
-                },
-            }
-        })*/
-    },
-    actions: {
-        // assignLoginService:assign({
-        //     loginService:(context) => spawn(loginMachine.withConfig({
-        //         services:{
-        //             performSignup: async (ctx, event) => {
-        //                 const payload = omit("type", event);
-        //                 return await performSignup(payload)
-        //             },
-        //             performLogin: async (ctx, event) => {
-        //                 const payload = omit("type", event);
-        //                 const loginMode =ctx.user? "reAuth" : "standard"
-        //                 return await performSignin({...payload, loginMode})
-        //             },
-        //             performSocialLogin: async (ctx, event) => {
-        //                 if (event.type == "SOCIAL") {
-        //                     const payload = omit("type", event);
-        //                     const loginMode =ctx.user? "reAuth" :  "standard"
-        //
-        //                     return await  socialLoginAsync({...payload, loginMode} as SocialLoginParams);
-        //                 }
-        //
-        //             },
-        //         }
-        //     }))
-        // })
-        // onUnauthorizedEntry: async (ctx, event) => {
-        //     if (history.location.pathname !== "/signin") {
-        //         /* istanbul ignore next */
-        //         history.push("/signin");
-        //     }
-        // },
-        // onAuthorizedEntry: async (ctx, event) => {
-        //     if (history.location.pathname === "/signin") {
-        //         /* istanbul ignore next */
-        //         history.push("/");
-        //     } else {
-        //         history.push(
-        //             `/profile`
-        //         );
-        //     }
-        //
-        // },
+                    send({ type: "REPORT_ACCOUNT_PRESENT", user: account })
+                })
+                .catch(function (err) {
+                    send("REPORT_ACCOUNT_MISSING")
+                })
+        },
     }
 });
 

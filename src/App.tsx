@@ -1,5 +1,5 @@
 // import logo from "./logo.svg";
-import React, {useEffect} from "react";
+import React, {useEffect, useContext} from "react";
 import "./App.css";
 import "./styles/globals.css";
 import SignIn from "./components/SignIn";
@@ -18,15 +18,18 @@ import EventsContainer from "./containers/ActionsContainer";
 import {useInterpretWithLocalStorage} from "./machines/withLocalStorage";
 import {PrivateRoute} from "./routes";
 
-import { ThemeProvider, Theme, StyledEngineProvider, createTheme } from '@mui/material/styles';
+import {ThemeProvider, Theme, StyledEngineProvider, createTheme} from '@mui/material/styles';
 
 import makeStyles from '@mui/styles/makeStyles';
 import SignInOidc from "./components/SignInOidc";
+import {GigyaContext, GigyaProvider, useGigya} from "./gigya/provider";
+import {AuthContext, AuthProvider} from "./auth/AuthProvider";
 
 
 declare module '@mui/styles/defaultTheme' {
-  // eslint-disable-next-line @typescript-eslint/no-empty-interface
-  interface DefaultTheme extends Theme {}
+    // eslint-disable-next-line @typescript-eslint/no-empty-interface
+    interface DefaultTheme extends Theme {
+    }
 }
 
 
@@ -39,22 +42,19 @@ const useStyles = makeStyles((theme) => {
 });
 
 
-
 const App = () => {
 
 
-    const authService = useInterpretWithLocalStorage(() => withGigya(authMachine));
-    
+    // const gigya = useGigya();
+    // const authService = useInterpretWithLocalStorage(() => withGigya(authMachine));
 
-    const [, sendSnackbar, snackbarService] = useMachine(snackbarMachine);
-    const [, sendNotification, notificationService] = useMachine(notificationMachine);
 
-    const showSnackbar = (payload: SnackbarContext) => sendSnackbar({type: "SHOW", ...payload});
 
     // authService.subscribe(state => {
     //     showSnackbar({message: state.value as string, severity: "info" })
     // })
 
+/*
     useEffect(() => {
         const subscription = authService.subscribe((state: AnyState) => {
             // simple state logging
@@ -65,50 +65,84 @@ const App = () => {
 
         return subscription.unsubscribe;
     }, [authService]);
+*/
 
     // @ts-ignore
     // @ts-ignore
     return (
         <StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
-
-            <div>
-                <EventsContainer authService={authService}/>
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flexWrap: 'none',
-                        m: 20,
-
-                        alignItems: "left"
-                    }}
-                >
-                    <Box>
-
-                        <Router>
-                            <PrivateRoute default as={ProfileContainer} path={"/"} authService={authService}/>
-                            <SignIn path={"/signin-more"} authService={authService}/>
-                            <SignInOidc path={"/signin"} authService={authService}/>
-                            <ProfileContainer path="/profile" authService={authService}/>
-
-                        </Router>
-                    </Box>
-
-                    <Container fixed maxWidth="sm">
-                        <NotificationsContainer authService={authService} notificationsService={notificationService}/>
-                    </Container>
-                </Box>
-
-
-                <AlertBar snackbarService={snackbarService}/>
-
-            </div>
-             </ThemeProvider>
+                <GigyaProvider>
+                    <AuthProvider>
+                           <AppWithService />  
+                    </AuthProvider>
+                </GigyaProvider>
+            </ThemeProvider>
         </StyledEngineProvider>
     );
 };
+const AppWithService = () => {
+    const authService = useContext(AuthContext);
+    const [, sendSnackbar, snackbarService] = useMachine(snackbarMachine);
+    const [, sendNotification, notificationService] = useMachine(notificationMachine);
+
+    const showSnackbar = (payload: SnackbarContext) => sendSnackbar({type: "SHOW", ...payload});
+    
+    useEffect(() => {
+        if(authService){
+            const subscription = authService.subscribe((state: AnyState) => {
+                // simple state logging
+                console.table(state);
+                showSnackbar({message: state.value.toString(), severity: "info"})
+
+            });
+            return subscription.unsubscribe;
+
+        }
+        return ()=>{};
+
+    }, [authService]);
+
+    if(authService ) {
+
+    
+    return ( <div>
+        <EventsContainer authService={authService}/>
+        <Box
+            sx={{
+                display: 'flex',
+                flexWrap: 'none',
+                m: 20,
+
+                alignItems: "left"
+            }}
+        >
+            <Box>
+
+                <Router>
+                    <PrivateRoute default as={ProfileContainer} path={"/"}
+                                  authService={authService}/>
+                    <SignIn path={"/signin"} authService={authService}/>
+                    <ProfileContainer path="/profile" authService={authService}/>
+
+                </Router>
+            </Box>
+
+            <Container fixed maxWidth="sm">
+                <NotificationsContainer authService={authService}
+                                        notificationsService={notificationService}/>
+            </Container>
+        </Box>
 
 
+        <AlertBar snackbarService={snackbarService}/>
 
+    </div>)
+    }
+    
+    else{
+        return <div>loading..</div>
+    }
+}
 
 export default App;
