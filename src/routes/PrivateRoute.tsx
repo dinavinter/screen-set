@@ -22,13 +22,11 @@ export function PrivateRoute({authService, as: Comp, ...props}: Props) {
         case state == undefined:
             return <LoginRoute authService={authService}/>;
 
-        case state.matches('login'):
-            return <LoginRoute authService={authService}/>
+        case state.matches('loggedIn'):
+            return  <Comp {...props} authService={authService}/>
 
-        case state.matches('reauth'):
-            return <SignIn authService={authService}/>
         default:
-            return <Comp {...props} authService={authService}/>;
+            return <LoginRoute authService={authService}/>
     }
 
 

@@ -7,6 +7,16 @@ import {AnyState} from "xstate";
 import {Box, List, Paper, Typography} from "@mui/material";
 import {NotificationResponseItem} from "../machines/notificationsMachine";
 import NotificationListItem from "./NotificationListItem";
+import Grid from '@mui/material/Grid';
+import { styled } from '@mui/material/styles';
+
+const Item = styled(Paper)(({ theme }) => ({
+    backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+    ...theme.typography.body2,
+    padding: theme.spacing(1),
+    textAlign: 'center',
+    color: theme.palette.text.secondary,
+}));
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -48,6 +58,8 @@ function Apps({authService}: ProfileProps) {
 
     return (
         <>
+          
+          
             {apps?.length > 0 ? (
                 <List data-test="apps-list">
                     {apps.map((app: App) => (
@@ -85,7 +97,7 @@ function App({app = {
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-more-horizontal"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
             </a>
             <div className="product-image">
-                <img src={app.icon} alt="" />
+                <img src={app.icon} />
             </div>
             <div className="product-info">
                 <h3>{app.name}</h3>

@@ -1,4 +1,4 @@
-import React,{useEffect, useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {RouteComponentProps} from "@reach/router"
 
 import Avatar from "@mui/material/Avatar";
@@ -55,41 +55,43 @@ export default function SignIn({authService}: SignInProps) {
     const {register, handleSubmit, formState: {errors}} = useForm();
     const {message, container} = useSelector(authService, loginServiceSelector);
     const containerRef = useRef<HTMLDivElement>(null);
- 
+
     // const {loginService} = useSelector(authService, loginServiceSelector);
     const loginService = authService;
 
     // const [ state,sendAuth] = useActor(authService.state);
     // The normal Gigya account login process makes use of
     // the react-hook-form library
-/*
-    useEffect(()=>{
-        if(containerRef.current){
-            loginService.send(  {type:"LOGIN", containerID:containerRef.current.id} );
-
-        }
-    },[containerRef.current])
-*/
+    /*
+        useEffect(()=>{
+            if(containerRef.current){
+                loginService.send(  {type:"LOGIN", containerID:containerRef.current.id} );
+    
+            }
+        },[containerRef.current])
+    */
 
 
     return (
         <Container component="main" maxWidth="xs">
             <CssBaseline/>
-                <div className={classes.paper}>
-                    <Avatar className={classes.avatar}>
-                        <LockOutlinedIcon/>
-                    </Avatar>
+            <div className={classes.paper}>
+                <Avatar className={classes.avatar}>
+                    <LockOutlinedIcon/>
+                </Avatar>
+                <Button onClick={() => authService.send("LOGIN")}> 
                     <Typography component="h1" variant="h5">
                         Sign in
                     </Typography>
-                    
+                </Button>
 
-                    <div id={container} ref={containerRef} />
 
-                </div>
-            
-             
-            {message &&  <span><ErrorOutlined /> {message}</span>}
+                <div id={container} ref={containerRef}/>
+
+            </div>
+
+
+            {message && <span><ErrorOutlined/> {message}</span>}
 
         </Container>
     );
