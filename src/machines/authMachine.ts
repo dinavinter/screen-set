@@ -25,7 +25,7 @@ export const authModel = createModel(
         user: undefined as User | undefined,
         token: undefined as Token | undefined,
         service: undefined as any | undefined,
-        container: 'container'  ,
+        container: 'container',
         loader: undefined as any | undefined
 
     },
@@ -33,9 +33,10 @@ export const authModel = createModel(
         events: {
             LOGGED_IN: (user: User) => ({user}),
             LOGGED_OUT: () => ({}),
-            REPORT_ACCOUNT_PRESENT: (user: User) => ({user}),
-            REPORT_ACCOUNT_MISSING: () => ({}),
+            ACCOUNT: (user: User) => ({user}),
+            ACCOUNT_MISSING: () => ({}),
             LOGIN: (containerID: string) => ({containerID}),
+            LOGOUT: (containerID: string) => ({containerID}),
             LOADED: (service: any) => ({service})
 
         },
@@ -87,14 +88,14 @@ export const authMachine = authModel.createMachine(
                     }
                 }
             },
-            
+
             checkingAccount: {
                 invoke: {
                     id: "authMachine-fetch",
                     src: "fetchAccount",
                 },
                 on: {
-                    REPORT_ACCOUNT_PRESENT: {
+                    ACCOUNT: {
                         target: "loggedIn",
                         actions: [
                             authModel.assign({
@@ -102,7 +103,7 @@ export const authMachine = authModel.createMachine(
                             }),
                         ],
                     },
-                    REPORT_ACCOUNT_MISSING: {
+                    ACCOUNT_MISSING: {
                         target: 'loggedOut',
                         actions: [
                             authModel.assign({
@@ -114,18 +115,38 @@ export const authMachine = authModel.createMachine(
                     },
                 },
             },
-            loggedIn: {},
+            loggedIn: {
+                on: {
+                    LOGOUT: {
+                        target: 'logout'
+                    }
+                }
+            },
             loggedOut: {
-                entry: send({
-                    type: "LOGIN",
+
+                entry: [
+                    authModel.assign({
+                        user: (_, ev) => undefined,
+                    }),
+                    send({
+                        type: "LOGIN",
 
 
-                })
+                    })]
             },
             login: {
                 invoke: {
                     id: "authMachine-login",
                     src: "showLogin",
+
+
+                },
+
+            },
+            logout: {
+                invoke: {
+                    id: "authMachine-logout",
+                    src: "logout",
 
 
                 },
@@ -139,7 +160,7 @@ export const authMachine = authModel.createMachine(
                 service: (_: any, ev: { type: "LOADED", service: any; }) => ev.service
             }),
             assignServiceFromData: authModel.assign({
-                service: (_: any, ev: { data: { service: any; }; } ) => ev.data.service
+                service: (_: any, ev: { data: { service: any; }; }) => ev.data.service
             }),
         }
     }

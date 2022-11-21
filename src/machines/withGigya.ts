@@ -10,15 +10,13 @@ import {Subject} from "rxjs";
 import {gigyaService, loader} from "../gigya/gigyaLoadMachine";
 
 
-  
-
 export const withGigya = (authMachine: AuthMachine) => authMachine.withContext({
     ...authMachine.context,
-    loader:loader
+    loader: loader
 }).withConfig({
     services: {
-        loader:  (context, event) => loader, 
-       
+        loader: (context, event) => loader,
+
         showLogin: (ctx, event) => {
             const payload = omit("type", event);
             const context = omit("service", ctx);
@@ -26,7 +24,7 @@ export const withGigya = (authMachine: AuthMachine) => authMachine.withContext({
                 const user = await ctx.service.showLoginScreenSet(payload);
                 return {user: {...(user?.userInfo || {}), photo: user?.profile?.photoURL}};
             }
-            ctx.service && show({containerID: context.container, ...payload});             
+            ctx.service && show({containerID: context.container, ...payload});
             return ctx.service.$login;
         },
         fetchAccount: (ctx, event) => (send) => {
@@ -34,28 +32,34 @@ export const withGigya = (authMachine: AuthMachine) => authMachine.withContext({
             return getAccountAsync(payload)
                 .then(function ({user}) {
 
-                    send({type: "REPORT_ACCOUNT_PRESENT", user})
+                    send({type: "ACCOUNT", user})
                 })
                 .catch(function (err) {
-                    send("REPORT_ACCOUNT_MISSING")
+                    send("ACCOUNT_MISSING")
                 })
         },
+        logout: (ctx, event) => (send) => {
+            ctx.service.logout({callback: () => send({type: "LOGGED_OUT"})})
+               
+        },
     },
-    actions:{
+
+    actions: {
         assignService: authModel.assign({
             service: (_: any, ev: { type: "LOADED", service: any; }) => ev.service
         })
     }
 });
 
-async function getAccountAsync  (payload:any){
-    const account= await getAccount(payload);
-     const    apps= await getApps(gigyaService.state?.context?.config?.app);
- 
-    const user = {...account,...(account?.profile || {}), photo: account?.profile?.photoURL, apps};
+async function getAccountAsync(payload: any) {
+    const account = await getAccount(payload);
+    const apps = await getApps(gigyaService.state?.context?.config?.app);
+
+    const user = {...account, ...(account?.profile || {}), photo: account?.profile?.photoURL, apps};
 
     return {apps, user}
- }
+}
+
 function decodeJwt(token?: string) {
 
     return token && token.split && JSON.parse(atob(token.split('.')[1]));
