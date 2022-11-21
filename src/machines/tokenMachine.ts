@@ -1,6 +1,7 @@
 import {User} from "../models";
 import {actions, assign, InterpreterFrom, Machine} from "xstate";
-import {SocialEvent, Token} from "./authMachine";
+import {Token} from "./authMachine";
+// import {SocialEvent, Token} from "./authMachine";
 const {log} = actions;
 
 export interface LoginMachineSchema {
@@ -15,7 +16,7 @@ export interface LoginMachineSchema {
 }
 
 export type LoginMachineEvents =
-    | SocialEvent
+    |  { type: "SOCIAL" , provider: any}
     | { type: "SIGNUP" }
     | { type: "PASSWORD" };
 
@@ -162,5 +163,5 @@ export const tokenMachine= Machine<Token, TokenMachineSchema, TokenMachineEvents
 
 })
 
-export type LoginMachine = typeof loginMachine;
-export type LoginService = InterpreterFrom<LoginMachine>;
+// export type LoginMachine = typeof loginMachine;
+// export type LoginService = InterpreterFrom<LoginMachine>;

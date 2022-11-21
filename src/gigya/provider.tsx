@@ -71,35 +71,9 @@ export function gigyaSdk(): Promise<GigyaSdk> {
 }
 
 export function GigyaProvider({children}: React.PropsWithChildren) {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [gigya, setGigya] = useState<GigyaSdk>();
-
+ 
     const authService = useContext(AuthContext);
-/*
-    const onGigyaServiceReady = () => {
-        setGigya(window.gigya);
-        authService.send({type:"LOADED", service:sdk()});
-        window.gigya.socialize.addEventHandlers({
-            onLogin: onLogin,
-            onLogout: onLogout
-        });
-    };
   
-    useEffect(() => {
-        window.onGigyaServiceReady = onGigyaServiceReady;
-        loadFromConfig(config);
-    });
-*/
-
-
-    const onLogin = (event: any) => {
-        setIsLoggedIn(true);
-        authService.send({type: "LOGGED_IN", user: {user:{ ...(event.user?.userInfo || {}),  photo: event.user?.profile?.photoURL}}})
-    }
-    const onLogout = () => {
-        setIsLoggedIn(false)
-    }
-
 
     return <GigyaContext.Provider value={gigya}>
         {children}

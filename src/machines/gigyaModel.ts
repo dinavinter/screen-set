@@ -1,16 +1,47 @@
-import {loadFromConfig} from "./engine";
-import * as config from "./config/site.json";
-import {checkIfGigyaLoaded} from "./dynamic-apikey";
+import {loadFromConfig} from "../gigya/engine";
+import * as config from "../gigya/config/site.json";
+import {checkIfGigyaLoaded} from "../gigya/dynamic-apikey";
 import { createModel } from "xstate/lib/model";
 import { interpret } from "xstate";
 import { Subject } from "rxjs";
-import {UserInfo} from "./models";
-import * as gigya from "./gigyaAuthService";
-declare type GigyaConfig = object &{app?:string};
+import * as gigya from "../gigya/gigyaAuthService";
+import {UserInfo} from "../gigya/models";
+declare type GigyaConfig = object;
+
 export declare type GigyaSdk = (typeof gigya & {
     loaded: true
 } & typeof window.gigya) | { loaded: false };
 
+declare global {
+
+    interface Window {
+        gigya: any,
+        onGigyaServiceReady: any
+
+    }
+
+
+}
+export const loginSubject = new Subject<{type: "LOGGED_IN", user:Partial<UserInfo>}>()  ;
+export const loadedSubject=new Subject<{type: "LOADED", service: any}>()  ;
+
+export function sdk(): GigyaSdk {
+    let onLogin = (event:any)=>{
+        loginSubject.next({type: "LOGGED_IN", user:{ ...(event.user?.userInfo || {}),  photo: event.user?.profile?.photoURL}})
+
+    };
+
+    window.gigya.socialize.addEventHandlers({
+        onLogin: onLogin
+    });
+    return {
+        ...window.gigya,
+        ...gigya,
+        loaded: true,
+        $login: loginSubject
+    }
+
+}
 export const gigyaModel = createModel(
     {
         service: undefined as GigyaSdk | undefined,
@@ -139,8 +170,8 @@ const gigyaLoadingMachine = gigyaModel.createMachine({
     }
 });
 
-export const gigyaService = interpret(gigyaLoadingMachine).start();
-function onGigyaServiceReady() {
+const gigyaService = interpret(gigyaLoadingMachine).start();
+ function onGigyaServiceReady() {
     console.group('onGigyaServiceReady');
     // Check if the user was previously logged in
     if (typeof window.gigya === "undefined") {
@@ -173,7 +204,6 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize the site (and loads Gigya file)
     gigyaService.send({type: "LOAD", config});
 });
-export const loadedSubject=new Subject<{type: "LOADED", service: any}>()  ;
 
 gigyaService.subscribe(state => {
     if (state.matches("idle"))
@@ -192,25 +222,4 @@ gigyaService.subscribe(state => {
 
 })
 
-
-export const loginSubject = new Subject<{type: "LOGGED_IN", user:Partial<UserInfo>}>()  ;
-
-export function sdk(): GigyaSdk {
-    let onLogin = (event:any)=>{
-        loginSubject.next({type: "LOGGED_IN", user:{ ...(event.user?.userInfo || {}),  photo: event.user?.profile?.photoURL}})
-
-    };
-
-    window.gigya.socialize.addEventHandlers({
-        onLogin: onLogin
-    });
-    return {
-        ...window.gigya,
-        ...gigya,
-        loaded: true,
-        $login: loginSubject
-    }
-
-}
- 
 export const loader= loadedSubject;

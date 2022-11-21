@@ -6,6 +6,7 @@ import {AnyState} from "xstate";
 import {Box} from "@mui/material";
 import SessionInfo from "../components/Session";
 import Profile from "../components/Profile";
+import Apps from "../components/Apps";
 
 const useStyles = makeStyles((theme) => ({
     box: {
@@ -70,16 +71,17 @@ function ProfileContainer({authService}: ProfileProps) {
             flexDirection:"column"
         }}
     >
+        
             <div className={classes.stackItem}>
                 <Profile authService={authService}/>
             </div>
-            <div  className={classes.stackItem}>
-                <SessionInfo authService={authService}/>
+            <div className={classes.stackItem}>
+                <Apps authService={authService}/>
             </div>
-       
+    
 
-          
-        </Box>
+
+    </Box>
     );
 }
 

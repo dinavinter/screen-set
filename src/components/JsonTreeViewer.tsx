@@ -13,7 +13,7 @@ export const JsonView:React.FC<JsonProps>= ({data}) => {
     }
     return (
         <div>
-            <ReactJson collapsed={false} theme={"bright:inverted"} src={data}/>
+            <ReactJson collapsed={false} theme={"bright:inverted"} src={JSON.parse(JSON.stringify(data))}/>
             {/*{window && <JSONTree data={data} theme="bright" shouldExpandNode={shouldExpandNode} />}*/}
         </div>
     );

@@ -168,6 +168,56 @@ export function getAccount(args ={}): Promise<Account> {
     });
 }
 
+
+async function getAssets(appId) {
+
+    return new Promise((resolve, reject) => {
+        gigya.accounts.b2b.auth.getAssets({
+            appId: appId,
+            callback: function (response) {
+                console.log(response);
+                if (response.errorCode === 0) {
+                    resolve(response.allowedAssets);
+
+                }
+                if (response.errorCode !== 0) {
+                    reject(
+                        `Error during registration: ${response.errorMessage}, ${response.errorDetails}`
+                    );
+
+                }
+            }
+        });
+    });
+    //get portal application assets
+
+
+}
+
+export async function getApps(appId) {
+    try {
+
+
+        const assets = await getAssets(appId || config.appId);
+        return assets.filter(a => a.type === 'Portal Applications').map(e => {
+            return {name: e.path, id: e.attributes?.app, ...(e.attributes || {})}
+        })
+    } catch (ex) {
+        console.log(ex);
+        return [{
+            id: "ssd",
+            icon: "img/assets/products/1.svg",
+            name: "Portal Application",
+            info: ex.message,
+            role: "Explorer"
+        }]
+    }
+}
+
+function toApps(response) {
+    return response.allowedAssets.filter(a=> a.type ==='Portal Applications').map(e=> {return {name:e.path, id: e.attributes?.app ,...(e.attributes || {})} });
+}
+
 export type LoginParams = {
     [key: string]: any
     loginMode?: string
