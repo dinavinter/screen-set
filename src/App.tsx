@@ -21,7 +21,6 @@ import {PrivateRoute} from "./routes";
 import {ThemeProvider, Theme, StyledEngineProvider, createTheme} from '@mui/material/styles';
 
 import makeStyles from '@mui/styles/makeStyles';
-import SignInOidc from "./components/SignInOidc";
 import {GigyaContext, GigyaProvider, useGigya} from "./gigya/provider";
 import {AuthContext, AuthProvider} from "./auth/AuthProvider";
 
