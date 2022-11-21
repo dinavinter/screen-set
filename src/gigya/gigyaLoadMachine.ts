@@ -140,6 +140,7 @@ const gigyaLoadingMachine = gigyaModel.createMachine({
 });
 
 export const gigyaService = interpret(gigyaLoadingMachine).start();
+/*
 function onGigyaServiceReady() {
     console.group('onGigyaServiceReady');
     // Check if the user was previously logged in
@@ -162,6 +163,7 @@ function onGigyaServiceReady() {
     console.groupEnd();
 }
 window.onGigyaServiceReady = onGigyaLoaded;
+*/
 
 export function onGigyaLoaded() {
 

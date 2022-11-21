@@ -43,6 +43,7 @@ export const authModel = createModel(
 )
 export const authMachine = authModel.createMachine(
     {
+        predictableActionArguments: true,
         id: "authStateMachine",
         context: authModel.initialContext,
         initial: "loading",

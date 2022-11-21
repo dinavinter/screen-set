@@ -47,10 +47,16 @@ export const notificationMachine= createMachine(notificationsMachineConfig, {
     actions: {
         addNotification:  assign({
             notifications: (context, event: NotificationsEvents)=> {
-                return event.type === "ADD" ? [...context.notifications , event.notification]: context.notifications
+                return event.type === "ADD" ? [...context.notifications , event.notification].filter(onlyUnique): context.notifications
             }
         })
     }
 })
 
-export type NotificationsService = InterpreterFrom<typeof notificationMachine>
+ function onlyUnique(value: NotificationResponseItem, index: number, self: NotificationResponseItem[]) {
+     return self.map(e=> e.id).indexOf(value.id) === index;
+ }
+
+
+
+ export type NotificationsService = InterpreterFrom<typeof notificationMachine>

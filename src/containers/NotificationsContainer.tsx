@@ -42,7 +42,7 @@ const NotificationsContainer: React.FC<Props> = ({authService, notificationsServ
 
     function getPayload(event: AnyEventObject) {
        return {
-        ...omit( ['type','data'], event),
+        ...omit( ['type','data', 'service', 'loader'], event),
         ...(event.data || {})
 
         };
@@ -79,15 +79,15 @@ const NotificationsContainer: React.FC<Props> = ({authService, notificationsServ
         return {};
     }
     useEffect(() => {
-        authService.onEvent(event => {
+        authService.subscribe(state => {
             if(!event) return;
             console.trace();
             sendNotifications({
                 type: "ADD", notification: {
                     id: generateUniqueID(),
-                    title:  value + '-' + event.type.toLowerCase()  ,
+                    title:  state.value + ':: ' + state.event?.type?.toLowerCase()  ,
                     severity: 'info',
-                    payload: getPayload(event),
+                    payload: getPayload(state.event),
                     ...doneDetails(event),
                     ...errorDetails(event)
                 }
