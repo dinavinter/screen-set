@@ -49,34 +49,33 @@ const App = () => {
     // const authService = useInterpretWithLocalStorage(() => withGigya(authMachine));
 
 
-
     // authService.subscribe(state => {
     //     showSnackbar({message: state.value as string, severity: "info" })
     // })
 
-/*
-    useEffect(() => {
-        const subscription = authService.subscribe((state: AnyState) => {
-            // simple state logging
-            console.log(state);
-            showSnackbar({message: state.value.toString(), severity: "info"})
-
-        });
-
-        return subscription.unsubscribe;
-    }, [authService]);
-*/
+    /*
+        useEffect(() => {
+            const subscription = authService.subscribe((state: AnyState) => {
+                // simple state logging
+                console.log(state);
+                showSnackbar({message: state.value.toString(), severity: "info"})
+    
+            });
+    
+            return subscription.unsubscribe;
+        }, [authService]);
+    */
 
     // @ts-ignore
     // @ts-ignore
     return (
         <StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
-                <GigyaProvider>
-                    <AuthProvider>
-                           <AppWithService />  
-                    </AuthProvider>
-                </GigyaProvider>
+                <AuthProvider>
+                    <GigyaProvider>
+                        <AppWithService/>
+                    </GigyaProvider> 
+                </AuthProvider>
             </ThemeProvider>
         </StyledEngineProvider>
     );
@@ -87,60 +86,59 @@ const AppWithService = () => {
     const [, sendNotification, notificationService] = useMachine(notificationMachine);
 
     const showSnackbar = (payload: SnackbarContext) => sendSnackbar({type: "SHOW", ...payload});
-    
+
     useEffect(() => {
-        if(authService){
+        if (authService) {
             const subscription = authService.subscribe((state: AnyState) => {
                 // simple state logging
-                console.table(state);
+                console.log(state);
                 showSnackbar({message: state.value.toString(), severity: "info"})
 
             });
             return subscription.unsubscribe;
 
         }
-        return ()=>{};
+        return () => {
+        };
 
     }, [authService]);
 
-    if(authService ) {
+    if (authService) {
 
-    
-    return ( <div>
-        <EventsContainer authService={authService}/>
-        <Box
-            sx={{
-                display: 'flex',
-                flexWrap: 'none',
-                m: 20,
 
-                alignItems: "left"
-            }}
-        >
-            <Box>
+        return (<div>
+            <EventsContainer authService={authService}/>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexWrap: 'none',
+                    m: 20,
 
-                <Router>
-                    <PrivateRoute default as={ProfileContainer} path={"/"}
-                                  authService={authService}/>
-                    <SignIn path={"/signin"} authService={authService}/>
-                    <ProfileContainer path="/profile" authService={authService}/>
+                    alignItems: "left"
+                }}
+            >
+                <Box>
 
-                </Router>
+                    <Router>
+                        <PrivateRoute default as={ProfileContainer} path={"/"}
+                                      authService={authService}/>
+                        <SignIn path={"/signin"} authService={authService}/>
+                        <ProfileContainer path="/profile" authService={authService}/>
+
+                    </Router>
+                </Box>
+
+                <Container fixed maxWidth="sm">
+                    <NotificationsContainer authService={authService}
+                                            notificationsService={notificationService}/>
+                </Container>
             </Box>
 
-            <Container fixed maxWidth="sm">
-                <NotificationsContainer authService={authService}
-                                        notificationsService={notificationService}/>
-            </Container>
-        </Box>
 
+            <AlertBar snackbarService={snackbarService}/>
 
-        <AlertBar snackbarService={snackbarService}/>
-
-    </div>)
-    }
-    
-    else{
+        </div>)
+    } else {
         return <div>loading..</div>
     }
 }

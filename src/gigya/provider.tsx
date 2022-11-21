@@ -1,12 +1,16 @@
-
 import React, {useEffect, useState} from "react";
 import * as gigya from "./gigyaAuthService"
 
-import { createContext, useContext } from 'react';
+import {createContext, useContext} from 'react';
+import {AuthContext} from "../auth/AuthProvider";
+import * as config from "./config/site.json";
+import {loadFromConfig} from "./engine";
+import { Subject } from "rxjs";
+import {UserInfo} from "./models";
 
-export const GigyaContext = createContext<GigyaSdk>({loaded: false} );
+export const GigyaContext = createContext<GigyaSdk>({loaded: false});
 
-export function useGigya():GigyaSdk {
+export function useGigya(): GigyaSdk {
     return useContext(GigyaContext);
 
 }
@@ -23,64 +27,84 @@ declare global {
 
 }
 
-export declare type GigyaSdk = (typeof gigya &{
-    loaded: true  
-}& typeof window.gigya )| {loaded: false};
+export declare type GigyaSdk = (typeof gigya & {
+    loaded: true
+} & typeof window.gigya) | { loaded: false };
 
 function onGigyaService(cb: (gigya: GigyaSdk) => void) {
-    window.onGigyaServiceReady = ()=> cb(sdk());
- 
- 
-}
+    window.onGigyaServiceReady = () => cb(sdk());
 
-function sdk(): GigyaSdk {
+
+}
+export const loginSubject = new Subject<{type: "LOGGED_IN", user:Partial<UserInfo>}>()  ;
+
+export function sdk(): GigyaSdk {
+    let onLogin = (event:any)=>{
+        loginSubject.next({type: "LOGGED_IN", user:{ ...(event.user?.userInfo || {}),  photo: event.user?.profile?.photoURL}})
+
+    };
+  
+    window.gigya.socialize.addEventHandlers({
+        onLogin: onLogin
+    });
     return {
         ...window.gigya,
         ...gigya,
-        loaded: true
+        loaded: true,
+        $login: loginSubject
     }
-    // waitForLogin: waitForLogin()
-
+    
 }
-  
+
 export function gigyaSdk(): Promise<GigyaSdk> {
 
-    if(window.gigya )return window.gigya;
     return new Promise((resolve) => {
-        window.onGigyaServiceReady = ()=> resolve(sdk());
+        if (window.gigya) resolve( sdk());
+        else {
+            window.onGigyaServiceReady = () => resolve(sdk());
 
-      
+        }
+
+
+
     });
 }
 
-export function GigyaProvider({ children}:React.PropsWithChildren) {
-    const [isLoggedIn, setIsLoggedIn] = useState( false);
-    const [gigya, setGigya] = useState<GigyaSdk>(  );
-    
-    useEffect( ()=>{
-        onGigyaService((g)=>{
-            setGigya(g);
-            g.socialize.addEventHandlers({
-                onLogin: onLogin,
-                onLogout:onLogout
-            });
-        })
-    },[window.gigya])
- 
-    const onLogin=()=> {
+export function GigyaProvider({children}: React.PropsWithChildren) {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [gigya, setGigya] = useState<GigyaSdk>();
+
+    const authService = useContext(AuthContext);
+/*
+    const onGigyaServiceReady = () => {
+        setGigya(window.gigya);
+        authService.send({type:"LOADED", service:sdk()});
+        window.gigya.socialize.addEventHandlers({
+            onLogin: onLogin,
+            onLogout: onLogout
+        });
+    };
+  
+    useEffect(() => {
+        window.onGigyaServiceReady = onGigyaServiceReady;
+        loadFromConfig(config);
+    });
+*/
+
+
+    const onLogin = (event: any) => {
         setIsLoggedIn(true);
+        authService.send({type: "LOGGED_IN", user: {user:{ ...(event.user?.userInfo || {}),  photo: event.user?.profile?.photoURL}}})
     }
-    const onLogout=()=> {
+    const onLogout = () => {
         setIsLoggedIn(false)
     }
 
 
- 
-
-
-    return  <GigyaContext.Provider value={gigya}>
-       {children}  
+    return <GigyaContext.Provider value={gigya}>
+        {children}
     </GigyaContext.Provider>
 
 
 }
+

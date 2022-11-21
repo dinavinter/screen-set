@@ -7,21 +7,11 @@ import {withGigya} from "../machines/withGigya";
 export const AuthContext = createContext<AuthService>({} as AuthService);
 
 export function AuthProvider({ children}:React.PropsWithChildren) {
-    const gigya = useContext(GigyaContext);
-    // const [authService, setAuthService] = useState<AuthService>(  );
 
     const getMachine=():AuthMachine => withGigya(authMachine);
     const authService= useInterpretWithLocalStorage(getMachine);
  
         return  <AuthContext.Provider value={authService}>
             {children}
-        </AuthContext.Provider>
-
-   
-
-
-
-    // @ts-ignore
-
-
+        </AuthContext.Provider> 
 }

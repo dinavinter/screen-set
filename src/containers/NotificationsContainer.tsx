@@ -6,7 +6,7 @@ import NotificationList from "../components/NotificationList";
 import {AuthService} from "../machines/authMachine";
 import {NotificationResponseItem, NotificationsEvents, NotificationsService} from "../machines/notificationsMachine";
 import {omit} from "lodash/fp";
-import {useActor} from "@xstate/react";
+import {useActor,useSelector} from "@xstate/react";
 
 const useStyles = makeStyles((theme) => ({
     paper: {
@@ -33,6 +33,7 @@ function generateUniqueID() {
 
 interface NotificationUpdatePayload {
 }
+const loginServiceSelector = (state: any) => state;
 
 const NotificationsContainer: React.FC<Props> = ({authService, notificationsService}) => {
     const classes = useStyles();
@@ -46,7 +47,8 @@ const NotificationsContainer: React.FC<Props> = ({authService, notificationsServ
 
         };
     }
-  
+
+    const {value} = useSelector(authService, loginServiceSelector);
 
 
     function doneDetails(event: AnyEventObject):Partial<NotificationResponseItem >{
@@ -79,11 +81,11 @@ const NotificationsContainer: React.FC<Props> = ({authService, notificationsServ
     useEffect(() => {
         authService.onEvent(event => {
             if(!event) return;
-            
+            console.trace();
             sendNotifications({
                 type: "ADD", notification: {
                     id: generateUniqueID(),
-                    title:  event.type.toLowerCase(),
+                    title:  value + '-' + event.type.toLowerCase()  ,
                     severity: 'info',
                     payload: getPayload(event),
                     ...doneDetails(event),

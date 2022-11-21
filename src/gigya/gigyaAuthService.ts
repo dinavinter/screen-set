@@ -59,14 +59,15 @@ export async function performSignupWithSS(args: any) {
 export async function showLoginScreenSet(args: any):Promise<Account> {
     return new Promise((resolve, reject) => {
 
+        const onLogin =(r) => {
+            resolve(r)
+        }
         gigyaWebSDK().accounts.showScreenSet(
             {
                 screenSet: "Default-RegistrationLogin",
                 startScreen: 'gigya-login-screen',
                 ...args, 
-                onLogin: (r) => {
-                    resolve(r)
-                },
+                onLogin:onLogin,
                 callback: (response) => {
                     if (response.errorCode === 0) {
                         resolve(response);
@@ -78,7 +79,10 @@ export async function showLoginScreenSet(args: any):Promise<Account> {
                         );
                     }
                 },
-            })
+            });
+        // gigyaWebSDK().accounts.addEventHandlers({
+        //     onLogin: onLogin,
+        // });
 
     });
 }

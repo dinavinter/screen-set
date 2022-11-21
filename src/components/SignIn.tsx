@@ -53,7 +53,7 @@ const loginServiceSelector = (state: any) => state.context;
 export default function SignIn({authService}: SignInProps) {
     const classes = useStyles();
     const {register, handleSubmit, formState: {errors}} = useForm();
-    const {message} = useSelector(authService, loginServiceSelector);
+    const {message, container} = useSelector(authService, loginServiceSelector);
     const containerRef = useRef<HTMLDivElement>(null);
  
     // const {loginService} = useSelector(authService, loginServiceSelector);
@@ -62,12 +62,14 @@ export default function SignIn({authService}: SignInProps) {
     // const [ state,sendAuth] = useActor(authService.state);
     // The normal Gigya account login process makes use of
     // the react-hook-form library
+/*
     useEffect(()=>{
         if(containerRef.current){
             loginService.send(  {type:"LOGIN", containerID:containerRef.current.id} );
 
         }
     },[containerRef.current])
+*/
 
 
     return (
@@ -82,7 +84,7 @@ export default function SignIn({authService}: SignInProps) {
                     </Typography>
                     
 
-                    <div id={'container'} ref={containerRef} />
+                    <div id={container} ref={containerRef} />
 
                 </div>
             

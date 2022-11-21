@@ -72,28 +72,36 @@ export function initDemoSite() {
         .then((out) => {
 
             // Init webpage
-            loadConfigFromFile(out);
+            loadFromConfig(out);
 
         }).catch((err) => { return console.error(err); });
 }
 
+export function getConfigSite() {
+    // log('0. Init Demo site');
+    // Read configuration file and load it
+    return fetch('/config/site.json')
+        .then((res) => { return res.json(); });
+}
+
+
 /**
  * Loads the site UI using the configuration file coming as parameter, loading Gigya file at the end.
  * If there are parameters in the query string, these are taken and overrides the ones in the file.
- * @param  {object} out the config from the file
+ * @param  {object} config the config from the file
  */
-function loadConfigFromFile(out) {
+export function loadFromConfig(config) {
 
     
     // 0. Store config in window global (:-s)
     if (logConfigFile === true) {
-        console.table(out);
+        console.table(config);
     }
 
     // 1. Get proper language
     const storedLanguage = getLanguage();
     if (storedLanguage !== null) {
-        out.lang = storedLanguage;
+        config.lang = storedLanguage;
     }
 
     log("2. Check URL Params  ");
@@ -118,7 +126,7 @@ function loadConfigFromFile(out) {
         if (isValidApiKey === true) {
 
             // Enable the button and show the proper class for the input text
-            out.apiKeyFromQueryString = apiKeyFromQueryString;
+            config.apiKeyFromQueryString = apiKeyFromQueryString;
 
         } else {
             console.error("Invalid API Key. Loading default one...");
@@ -130,7 +138,7 @@ function loadConfigFromFile(out) {
     // 3. Check if we have the dynamic Screenset in the url
     const screensetPrefixFromQueryString = getFromQueryString("screensetPrefix");
     if (screensetPrefixFromQueryString && screensetPrefixFromQueryString !== null) {
-        out.raas_prefix = screensetPrefixFromQueryString;
+        config.raas_prefix = screensetPrefixFromQueryString;
     }
  
 
@@ -151,7 +159,7 @@ function loadConfigFromFile(out) {
     const apiKeyFromLocalStorage = getFromLocalStorage("reload-with-apikey");
 
     // Loading (initially) api key from file
-    var apiKey = out.apiKey;
+    var apiKey = config.apiKey;
 
     // Check if we have api key in the url
     if (apiKeyFromQueryString && apiKeyFromQueryString !== null && apiKeyFromQueryString !== "" && isValidApiKey === true) {
@@ -167,10 +175,34 @@ function loadConfigFromFile(out) {
     }
 
     // 7. Store the exit of the file as a global object to be used along the site
-    window.config = out;
+    window.config = config;
     // debugger;
     log("3. Load Gigya for api key: " + apiKey, "LOAD GIGYA FILE");
-    loadGigyaForApiKey(apiKey);
+    return loadScript(apiKey);
 }
 
+function loadScript(apiKey) {
+       const existing = document.body.querySelector('#gigya-script');
+   
+           const script = document.createElement('script');
+           // window.onGigyaServiceReady = () => {
+           //   resolve(script);
+           // }
+
+           script.id = `gigya-script`;
+           script.src = `https://cdns.gigya.com/js/gigya.js?apikey=${apiKey}`;
+           script.async = true;
+           document.body.appendChild(script);
+
+           return () => {
+               document.body.removeChild(script);
+           }
+  /*  if(!existing){    }
+
+    return () => {
+        document.body.removeChild(existing);
+    }*/
+
+    
+}
    

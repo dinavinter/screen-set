@@ -48,6 +48,7 @@ export function changeAPIKey() {
  * Loads dynamically into the body of the page the Gigya WebSDK Js file for the incoming API Key.
  * @param {string} apiKey Gigya API Key
  */
+
 export function loadGigyaForApiKey(apiKey) {
     // Adding new Gigya script from parameters
     log("2. Load Gigya File with apiKey " + apiKey, "LOAD GIGYA FILE");
@@ -60,7 +61,7 @@ export function loadGigyaForApiKey(apiKey) {
     document.body.appendChild(newScript);
 
     // Check if loaded properly, if don't, delete the localstorage param and reload the page again
-    setTimeout(checkIfGigyaLoaded, 1500);
+    setTimeout(checkIfGigyaLoaded, 2000);
 }
 
 /**
@@ -83,7 +84,7 @@ function clearCustomApiKey() {
  * Check if loaded properly, if don't, delete the localstorage param and reload the page again
  */
 export function checkIfGigyaLoaded() {
-    if (typeof window.gigya === "undefined" || window.gigya.isReady === false) {
+    if (typeof window.gigya === "undefined") {
         // Clear wrong api key
         const apiKeyFromLocalStorage = getFromLocalStorage("reload-with-apikey");
         if (
@@ -101,7 +102,10 @@ export function checkIfGigyaLoaded() {
             );
             clearCustomApiKey();
         }
+        return false;
     }
+    return true;
+
 }
 
 /**

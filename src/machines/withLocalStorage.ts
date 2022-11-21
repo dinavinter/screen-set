@@ -12,7 +12,8 @@ export function useInterpretWithLocalStorage<TMachine extends AnyStateMachine>(g
     return useInterpret(getMachine,
         {
             state: currentState
-        }, stateLocalStorage.observer);
+        });
+        // , stateLocalStorage.observer);
 
 }
 

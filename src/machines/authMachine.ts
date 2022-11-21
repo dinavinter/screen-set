@@ -1,50 +1,42 @@
-import {Machine, assign, InterpreterFrom, actions, ContextFrom, EventFrom} from "xstate";
+import {Machine, assign, InterpreterFrom, actions, ContextFrom, EventFrom, send} from "xstate";
 import {User, IdToken} from "../models";
 
 const {log} = actions;
 
-export interface AuthMachineSchema {
-    states: {
-        history: {};
-        unauthorized: {};
-        login: {};
-        logout: {};
-        refreshing: {};
-        authorized: {};
-        reauth: {};
-        error: {};
-        token: {};
-    };
-}
 
 export interface SocialPayload {
     provider: string,
 
     [key: string]: any
 }
-import { createModel } from "xstate/lib/model"
+
+import {createModel} from "xstate/lib/model"
 import {Account} from "../gigya/models";
+
 export interface Token {
     access_token?: string;
     refresh_token?: string;
     id_token?: string;
 }
- 
+
 
 export const authModel = createModel(
     {
         user: undefined as User | undefined,
         token: undefined as Token | undefined,
-        
-        
+        service: undefined as any | undefined,
+        container: 'container'  ,
+        loader: undefined as any | undefined
+
     },
     {
         events: {
-            LOGGED_IN: (user: User) => ({ user }),
+            LOGGED_IN: (user: User) => ({user}),
             LOGGED_OUT: () => ({}),
-            REPORT_ACCOUNT_PRESENT: (user: User) => ({ user }),
+            REPORT_ACCOUNT_PRESENT: (user: User) => ({user}),
             REPORT_ACCOUNT_MISSING: () => ({}),
-            LOGIN: ( containerID:string) => ({containerID })
+            LOGIN: (containerID: string) => ({containerID}),
+            LOADED: (service: any) => ({service})
 
         },
     }
@@ -53,13 +45,13 @@ export const authMachine = authModel.createMachine(
     {
         id: "authStateMachine",
         context: authModel.initialContext,
-        initial: "checkingAccount",
+        initial: "loading",
         on: {
-            LOGIN:{
-                target: "login" 
+            LOGIN: {
+                target: "login"
             },
             LOGGED_IN: {
-                target: "loggedIn",
+                target: "checkingAccount",
                 actions: [
                     authModel.assign({
                         user: (_, ev) => ev.type == "LOGGED_IN" && ev.user,
@@ -74,8 +66,27 @@ export const authMachine = authModel.createMachine(
                     }),
                 ],
             },
+
         },
         states: {
+            loading: {
+                invoke: {
+                    id: "loader",
+                    src: 'loader',
+                    onDone: [{
+                        target: "checkingAccount",
+                        actions: ['assignServiceFromData'],
+                    }]
+                },
+                on: {
+                    LOADED: {
+                        target: "checkingAccount",
+                        actions: ['assignService'
+                        ],
+                    }
+                }
+            },
+            
             checkingAccount: {
                 invoke: {
                     id: "authMachine-fetch",
@@ -91,27 +102,45 @@ export const authMachine = authModel.createMachine(
                         ],
                     },
                     REPORT_ACCOUNT_MISSING: {
-                        target: "loggedOut",
+                        target: 'loggedOut',
                         actions: [
                             authModel.assign({
                                 user: undefined,
-                            }),
+                            })
+
+
                         ],
                     },
                 },
             },
             loggedIn: {},
             loggedOut: {
-                
+                entry: send({
+                    type: "LOGIN",
+
+
+                })
             },
-            login:{
+            login: {
                 invoke: {
                     id: "authMachine-login",
                     src: "showLogin",
+
+
                 },
 
             }
         },
+    },
+    {
+        actions: {
+            assignService: authModel.assign({
+                service: (_: any, ev: { type: "LOADED", service: any; }) => ev.service
+            }),
+            assignServiceFromData: authModel.assign({
+                service: (_: any, ev: { data: { service: any; }; } ) => ev.data.service
+            }),
+        }
     }
 )
 
