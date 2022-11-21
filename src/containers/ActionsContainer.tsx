@@ -22,6 +22,7 @@ import {useActor} from "@xstate/react";
 import {EventObject, Sender} from "xstate/lib/types";
 import {MailOutline, LoginOutlined} from "@mui/icons-material"
 import IconButton from '@mui/material/IconButton';
+import {NotificationsService} from "../machines/notificationsMachine";
 
 declare module '@mui/styles/defaultTheme' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -49,12 +50,13 @@ const useStyles = makeStyles((theme) => ({
 
 export interface Props {
     authService: AuthService;
+    notificationsService: NotificationsService;
 }
 
-const EventsContainer: React.FC<Props> = ({authService}) => {
+const EventsContainer: React.FC<Props> = ({authService, notificationsService}) => {
     const classes = useStyles();
     const [authState] = useActor(authService);
-
+ 
     const sendEvent = authService.send;
     let theme = createTheme({
         typography: {
@@ -69,7 +71,7 @@ const EventsContainer: React.FC<Props> = ({authService}) => {
     const events:Array<{type:string, icon:string, info: string}>=  [{
         type: "LOGIN",
         icon : 'login',
-        info: 'Login!'
+        info: 'Login!',
     },
         {
             type: "LOGOUT",
@@ -83,7 +85,7 @@ const EventsContainer: React.FC<Props> = ({authService}) => {
         }];
     return (
         // <div className="bg-white max-w-7xl mx-auto px-4 sm:px-6">
-        <AppBar color="transparent" variant={"outlined"}>
+        <AppBar color="transparent" variant={"outlined"} position="sticky">
             <Box sx={{display: 'flex', alignItems: 'center', textAlign: 'center'}}>
                 {/*<div*/}
                 {/*    className="flex justify-between items-center border-b-2 border-gray-100 py-6 md:justify-start md:space-x-10">*/}
@@ -91,14 +93,18 @@ const EventsContainer: React.FC<Props> = ({authService}) => {
                 <StyledEngineProvider injectFirst>
                     <ThemeProvider theme={theme}>
  
-                        {
-                           
+                        { 
                            events .map(({type, icon, info}) => {
                                 return (
-                                    <Event state={authState} send={sendEvent} type={type} icon={icon} info={info}/>
+                                    <Event key={type} state={authState} send={sendEvent} type={type} icon={icon} info={info}/>
                                 );
                             })}
+                        
+{/*
+                        <Event type={"SHOW"} state={notificationsService.state} send={notificationsService.send} icon={'log'} info={'Show Logger'}/>
+                        <Event type={"HIDE"} state={notificationsService.state} send={notificationsService.send} icon={'remove'} info={'Hide Logger'}/>
 
+*/}
                     </ThemeProvider>
                 </StyledEngineProvider>
              </Box>

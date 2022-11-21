@@ -15,10 +15,11 @@ export interface NotificationsSchema {
 
     states: {
         visible: {};
+        hidden: {};
     };
 }
 
-export type NotificationsEvents = { type: "ADD", notification: NotificationResponseItem } | { type: "HIDE" };
+export type NotificationsEvents = { type: "ADD", notification: NotificationResponseItem } | { type: "HIDE" }| { type: "SHOW" };
 
 
 export interface NotificationsContext {
@@ -36,8 +37,20 @@ export const notificationsMachineConfig: MachineConfig<NotificationsContext, Not
             on: {
                 'ADD': {
                     actions: "addNotification"
+                },
+                'HIDE': {
+                    target:"hidden"
+                }
+            },
+          
+        },
+        hidden:{
+            on: {
+                'SHOW':{
+                    target:"visible"
                 }
             }
+            
         }
     }
 };

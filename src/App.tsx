@@ -7,7 +7,7 @@ import {authMachine, AuthService} from "./machines/authMachine";
 import {Router} from "@reach/router";
 import {useMachine} from "@xstate/react";
 import {AnyState} from "xstate";
-import {Box, Container} from "@mui/material";
+import {Box, Container, Stack} from "@mui/material";
 import {SnackbarContext, snackbarMachine} from "./machines/snackbarMachine";
 import AlertBar from "./components/AlertBar";
 import {withGigya} from "./machines/withGigya";
@@ -74,7 +74,7 @@ const App = () => {
                 <AuthProvider>
                     <GigyaProvider>
                         <AppWithService/>
-                    </GigyaProvider> 
+                    </GigyaProvider>
                 </AuthProvider>
             </ThemeProvider>
         </StyledEngineProvider>
@@ -107,17 +107,16 @@ const AppWithService = () => {
 
 
         return (<div>
-            <EventsContainer authService={authService}/>
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexWrap: 'none',
-                    m: 20,
+            <EventsContainer authService={authService} notificationsService={notificationService}/>
 
-                    alignItems: "left"
-                }}
-            >
-                <Box>
+            <Box>
+                <Stack
+                    direction="row"
+                    justifyContent="flex-end"
+                    alignItems="stretch"
+                    spacing={0.5}
+                >
+                    <Container  >
 
                     <Router>
                         <PrivateRoute default as={ProfileContainer} path={"/"}
@@ -126,14 +125,15 @@ const AppWithService = () => {
                         <ProfileContainer path="/profile" authService={authService}/>
 
                     </Router>
-                </Box>
+                    </Container>
 
-                <Container fixed maxWidth="sm">
-                    <NotificationsContainer authService={authService}
-                                            notificationsService={notificationService}/>
-                </Container>
+                    <Container  maxWidth="sm">
+                        <NotificationsContainer authService={authService}
+                                                notificationsService={notificationService}/>
+                    </Container>
+                </Stack>
+
             </Box>
-
 
             <AlertBar snackbarService={snackbarService}/>
 

@@ -1,6 +1,7 @@
 import React, {useEffect} from "react";
 import {AnyEventObject, Interpreter, ActionTypes} from "xstate";
-import { Paper, Typography } from "@mui/material";
+import {Button, Paper, Typography ,Icon, FormControlLabel, Slide,Switch, Box} from "@mui/material";
+import { Close } from "@mui/icons-material";
 import makeStyles from '@mui/styles/makeStyles';
 import NotificationList from "../components/NotificationList";
 import {AuthService} from "../machines/authMachine";
@@ -48,7 +49,6 @@ const NotificationsContainer: React.FC<Props> = ({authService, notificationsServ
         };
     }
 
-    const {value} = useSelector(authService, loginServiceSelector);
 
 
     function doneDetails(event: AnyEventObject):Partial<NotificationResponseItem >{
@@ -106,20 +106,38 @@ const NotificationsContainer: React.FC<Props> = ({authService, notificationsServ
     //   })
     // }, [authState]);
 
+    const handleChange = () => {
+        if(notificationsState.matches("visible")){
+            sendNotifications("HIDE");
+        }else {
+            sendNotifications("SHOW");
+        }
+    };
 
     const updateNotification = (payload: NotificationUpdatePayload) => {
     };
+    const checked= notificationsState.matches("visible");
 
     return (
-        <Paper className={classes.paper} >
-            <Typography component="h2" variant="h6" color="primary" gutterBottom>
-                Notifications
-            </Typography>
-            <NotificationList
-                notifications={notificationsState?.context?.notifications!}
-                updateNotification={updateNotification}
+        <Box >
+            <FormControlLabel
+                control={<Switch checked={notificationsState.matches("visible")} onChange={handleChange} />}
+                label="Show logger"
             />
-        </Paper>
+            <Slide direction="up" in={checked} >
+                <Paper className={classes.paper} > 
+                    <Typography component="h2" variant="h6" color="primary" gutterBottom>
+                        Logger
+                    </Typography>
+
+                    <NotificationList
+                        notifications={notificationsState?.context?.notifications!}
+                        updateNotification={updateNotification}
+                    />
+                </Paper>
+            </Slide>
+        </Box>
+ 
     );
 };
 
