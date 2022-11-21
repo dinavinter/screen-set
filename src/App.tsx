@@ -21,7 +21,6 @@ import {PrivateRoute} from "./routes";
 import {ThemeProvider, Theme, StyledEngineProvider, createTheme} from '@mui/material/styles';
 
 import makeStyles from '@mui/styles/makeStyles';
-import {GigyaContext, GigyaProvider, useGigya} from "./gigya/provider";
 import {AuthContext, AuthProvider} from "./auth/AuthProvider";
 
 
@@ -71,9 +70,7 @@ const App = () => {
         <StyledEngineProvider injectFirst>
             <ThemeProvider theme={theme}>
                 <AuthProvider>
-                    <GigyaProvider>
                         <AppWithService/>
-                    </GigyaProvider>
                 </AuthProvider>
             </ThemeProvider>
         </StyledEngineProvider>
